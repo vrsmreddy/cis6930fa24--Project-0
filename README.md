@@ -88,7 +88,19 @@ incidents = extractincidents(pdf_data)
   - Handles edge cases like "911 Call Nature" and unknown data.
 - **Returns**: 
   - A list of tuples representing the parsed incidents.
-    
+- **Process**:  
+  -  The regular expression used in the project is:
+    ```regex
+    (\d{1,2}/\d{1,2}/\d{4} \d{1,2}:\d{2}) (\d{4}-\d{8}) ((?:[A-Z0-9 /]+(?:DR|AVE|NE|RR|P|PL|ST|SW|BLVD|CIR|PKWY|RD|HWY|CT|SE|NW|RAMP|LN|BOARDWALK|WAY|GRN|OK-9|TER|SB I|AV|LN|UNIT 1201|Interstate|SQ|CT|CITY|Robinson|STREET|NB I|- GOLDSBY)|[0-9.-]+;[0-9.-]+)) (.+?) (OK\d{6}|EMSSTAT|14005|14009)
+  
+Uses a regular expression to identify and extract incident data from the text.
+- Date/Time: (\d{1,2}/\d{1,2}/\d{4} \d{1,2}:\d{2}) – a standard date/time format.
+- Incident Number: (\d{4}-\d{8}) – an incident number in the format of 4 digits followed by 8 digits.
+- Location: ((?:[A-Z0-9 /]+...)) – a location that may include street names and ends with suffixes like DR, AVE, ST, etc., or lat/long coordinates.
+- Nature: (.+?) – captures the nature of the incident, which can be multiple words.
+- ORI: (OK\d{6}|EMSSTAT|14005|14009) – captures the ORI code.
+
+
 **Example**:  
 ```python
  parsed_incidents = parse_incident_data(text)
