@@ -76,7 +76,7 @@ pdf_data = fetchincidents("https://www.normanok.gov/sites/default/files/document
     
 **Example**:  
 ```python
-pdf_data = incidents = extractincidents(pdf_data)
+incidents = extractincidents(pdf_data)
 
 ```
 # parse_incident_data(text)
