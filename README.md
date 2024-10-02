@@ -174,3 +174,6 @@ Data is inserted into the `incidents` table using the `populatedb()` function, w
    - The script assumes that the structure of the PDF will always be consistent in terms of how the data (Date/Time, Incident Number, Location, Nature, Incident ORI) is presented. If the structure of the PDF changes (e.g., if fields are rearranged, new fields are introduced, or line breaks change), the extraction logic based on `split()` operations may fail to capture the data correctly.
 3. **Incidents Split Across Pages:**:
    - The script assumes that each page contains complete incidents. If an incident is split across two pages (e.g., the first part of the incident is on one page and the second part on the next), the current implementation may fail to capture the entire incident, leading to incomplete records.
+4. **Handling Splitting::**:
+   - The code uses the || marker to identify new incidents based on the date format. If an incident spans multiple lines or pages, this approach may not correctly capture all incidents. Additionally, it assumes that incidents always start with a date, which may not always be the case in a different format.
+
