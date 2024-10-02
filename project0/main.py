@@ -22,38 +22,67 @@ def extractincidents(pdf_data):
         incidents.extend(parse_incident_data(text))
     return incidents
 
-# Helper function to parse the text into incident fields using regular expressions
+# Helper function to parse the text into incident fields using regular expressions and NER
 def parse_incident_data(text):
     incidents = []
 
-    # Updated pattern to capture date/time, incident number, location (ends with specified suffix or lat/long),
-    # nature, and ORI
-    pattern = r'(\d{1,2}/\d{1,2}/\d{4} \d{1,2}:\d{2}) ' \
-              r'(\d{4}-\d{8}) ' \
-              r'((?:[A-Z0-9 /]+(?:DR|AVE|NE|RR|P|PL|ST|SW|BLVD|CIR|PKWY|RD|HWY|CT|SE|NW|RAMP|LN|BOARDWALK|WAY|GRN|OK-9|TER|SB I|AV|LN|UNIT 1201|Interstate|SQ|CT|CITY|Robinson|STREET|NB I|- GOLDSBY)|[0-9.-]+;[0-9.-]+)) ' \
-              r'(.+?) ' \
-              r'(OK\d{6}|EMSSTAT|14005|14009)'
+    # Updated pattern to capture date/time, incident number, location, nature, and ORI
+    pattern = r'(\d{1,2}/\d{1,2}/\d{4} \d{1,2}:\d{2}) (\d{4}-\d{8}) ((?:[A-Z0-9 /]+(?:ST|AVE|BLVD|CT|PKWY|RD|HWY|PL|DR|LN|CIR|SQ|WAY|TERR|BYP|TRL|ALLEY|RAMP|INTERSTATE|OVERPASS|EXPY|RR)|[0-9.-]+;[0-9.-]+)) (.+?) (OK\d{6}|EMSSTAT|14005|14009)'
 
     # Find all matches in the text
     matches = re.findall(pattern, text)
 
     for match in matches:
-        incident_time, incident_number, location, nature, incident_ori = match
+        incident_time, incident_number, location_raw, nature_raw, incident_ori = match
 
-        # Post-process location to handle unexpected characters
-        location = location.strip()
-        nature = nature.strip()
+        # Process location using NER and regex
+        location = extract_location(location_raw)
+        
+        # Process nature and remove any incorrect prefixes
+        nature = extract_nature(nature_raw)
 
-        # Handle common edge cases, e.g. "911 Call Nature" or unknown values
-        if "911" in nature:
-            nature = "911 Call Nature Unknown"
-        elif not nature:
-            nature = "Unknown"
+        # Clean up directional indicators from the nature field if mistakenly attached
+        nature = clean_nature(nature)
 
-        # Append the parsed tuple (incident_time, incident_number, location, nature, incident_ori)
         incidents.append((incident_time, incident_number, location, nature, incident_ori.strip()))
 
     return incidents
+
+# Function to clean up nature field by removing direction prefixes (NE, NW, SE, SW)
+def clean_nature(nature):
+    # Remove leading/trailing spaces and lowercase
+    nature = nature.strip().lower()
+
+    # Directions to remove from nature descriptions
+    directions = ["ne", "nw", "se", "sw", "grn", "/"]
+
+    # Remove direction if it's at the beginning of the nature string
+    for direction in directions:
+        if nature.startswith(direction + " "):
+            nature = nature[len(direction) + 1:]
+
+    # Ensure nature is capitalized properly
+    nature = ' '.join([word.capitalize() for word in nature.split()])
+
+    return nature
+
+# Function to extract nature by cleaning it further, handles 911 calls and other specific cases
+def extract_nature(nature_raw):
+    nature = nature_raw.strip()
+
+    # Special handling for 911 calls
+    if "911" in nature:
+        return "911 Call Nature Unknown"
+    
+    return nature
+
+# Function to extract location using NER or manual parsing
+def extract_location(location_raw):
+    # Clean location by stripping unnecessary characters like slashes
+    location = location_raw.strip().replace("/", "").replace("RR", "Railroad")
+
+    # Apply NER if needed (currently manually cleaning)
+    return location
 
 # Function to create (and overwrite) the SQLite database and table
 def createdb():
