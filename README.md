@@ -79,33 +79,12 @@ pdf_data = fetchincidents("https://www.normanok.gov/sites/default/files/document
 incidents = extractincidents(pdf_data)
 
 ```
-# parse_incident_data(text)
-- **Parameters**: 
-  - `text`: A string representing the extracted text from a PDF page.
-- **Process**: 
-  - Uses a regular expression to identify and extract incident data from the text.
-  - It captures fields like incident time, number, location, nature, and ORI.
-  - Handles edge cases like "911 Call Nature" and unknown data.
-- **Returns**: 
-  - A list of tuples representing the parsed incidents.
-- **Process**:  
-  -  The regular expression used in the project is:
-    ```regex
-    (\d{1,2}/\d{1,2}/\d{4} \d{1,2}:\d{2}) (\d{4}-\d{8}) ((?:[A-Z0-9 /]+(?:DR|AVE|NE|RR|P|PL|ST|SW|BLVD|CIR|PKWY|RD|HWY|CT|SE|NW|RAMP|LN|BOARDWALK|WAY|GRN|OK-9|TER|SB I|AV|LN|UNIT 1201|Interstate|SQ|CT|CITY|Robinson|STREET|NB I|- GOLDSBY)|[0-9.-]+;[0-9.-]+)) (.+?) (OK\d{6}|EMSSTAT|14005|14009)
-  
-Uses a regular expression to identify and extract incident data from the text.
-- Date/Time: (\d{1,2}/\d{1,2}/\d{4} \d{1,2}:\d{2}) – a standard date/time format.
+2}/\d{1,2}/\d{4} \d{1,2}:\d{2}) – a standard date/time format.
 - Incident Number: (\d{4}-\d{8}) – an incident number in the format of 4 digits followed by 8 digits.
 - Location: ((?:[A-Z0-9 /]+...)) – a location that may include street names and ends with suffixes like DR, AVE, ST, etc., or lat/long coordinates.
 - Nature: (.+?) – captures the nature of the incident, which can be multiple words.
 - ORI: (OK\d{6}|EMSSTAT|14005|14009) – captures the ORI code.
 
-
-**Example**:  
-```python
- parsed_incidents = parse_incident_data(text)
-
-```
  # createdb()
 - **Parameters**: 
   - None.
@@ -121,10 +100,10 @@ Uses a regular expression to identify and extract incident data from the text.
  db = createdb()
 
 ```
-# populatedb(db, incidents)
+# populatedb(database_name, incident_records)
 - **Parameters**: 
-  - `db`: An SQLite database connection object.
-  - `incidents`: A list of incident tuples `(incident_time, incident_number, location, nature, incident_ori)`.
+  - `database_name`: An SQLite database connection object.
+  - `incident_records`: A list of incident tuples `(incident_time, incident_number, location, nature, incident_ori)`.
 - **Process**: 
   - Inserts the list of incidents into the SQLite database's `incidents` table.
   - Commits the transaction to save the data.
@@ -136,9 +115,9 @@ Uses a regular expression to identify and extract incident data from the text.
 populatedb(db, incidents)
 
 ```
-# status(db)
+# status(database_name)
 - **Parameters**: 
-  - `db`: An SQLite database connection object.
+  - `database_name`: The path to the SQLite database file.
 - **Process**: 
   - Queries the database to count the occurrences of each incident nature.
   - Prints the results to the console in a pipe-separated format (`nature|count`), sorted alphabetically by nature.
@@ -188,25 +167,10 @@ Data is inserted into the `incidents` table using the `populatedb()` function, w
 
 # Bugs and Assumptions
 
-## Known Bugs:
-1. **Empty PDFs**:
-   - If the program encounters an empty or malformed PDF file, it will crash due to a lack of error handling for such cases. The `pypdf` library throws exceptions when it cannot read valid PDF data, which is not currently caught in the script. Adding exception handling for empty PDFs and displaying a user-friendly message would be a proper fix for this issue.
+1. **Empty or Malformed PDFs:**:
+   - If the program encounters an empty or malformed PDF, it will raise an error during the parsing process. The current implementation of `PyPDF2.PdfFileReader()` does not handle empty or corrupted PDFs, and this would result in a crash.
 
-2. **Incomplete Incidents**:
-   - If an incident is split across lines or incomplete in the PDF, the regular expression parser might fail to capture all the necessary fields, leading to missing or incorrect data. This is due to inconsistent formatting of data in the PDF.
-2. **Incidents Split Across Pages:**:
-   - Another related issue is when incident data is split across pages in the PDF. The current extraction logic assumes each page is self-contained, which can cause issues if an incident begins on one page and finishes on another. To handle this correctly, the code would need to combine data from multiple pages.
-
-## Assumptions:
-1. **Location Field Suffixes**:
-   - The assumption in the current implementation is that the location field will end with certain well-known suffixes like `DR`, `AVE`, `ST`, etc., or `latitude/longitude coordinates (e.g., 35.2050366666667;-97.421115)`. These patterns have been identified from the provided PDFs. If new PDFs introduce new suffixes or formats, the regular expression may fail, and further adjustments would be necessary to ensure accurate extraction.
-
-2. **Checked PDFs**:
-   - The project has been tested on a handful of incident PDFs from the Norman, Oklahoma police department, and the location suffixes generally match the ones listed in the regular expression. However, this may not be comprehensive. If future PDFs introduce new or previously unseen formats, the regular expression may need to be updated.
-
-3. **Consistent Formatting**:
-   - This project assumes that the incidents in the PDF files follow a consistent format, including the structure of the date/time, incident number, location, nature, and ORI. If the police department changes its PDF formatting or alters the structure of its reports, the current regular expression extraction logic might not work as expected and would require modification.
-
-4. **Incident Nature Edge Cases**:
-   - The code includes special handling for natures like "911 Call Nature Unknown". The assumption here is that other edge cases might occur, but for now, the script explicitly handles some of the more common ones. Additional edge cases will need to be addressed as they are encountered.
-
+2. **PDF Format Changes:**:
+   - The script assumes that the structure of the PDF will always be consistent in terms of how the data (Date/Time, Incident Number, Location, Nature, Incident ORI) is presented. If the structure of the PDF changes (e.g., if fields are rearranged, new fields are introduced, or line breaks change), the extraction logic based on `split()` operations may fail to capture the data correctly.
+3. **Incidents Split Across Pages:**:
+   - The script assumes that each page contains complete incidents. If an incident is split across two pages (e.g., the first part of the incident is on one page and the second part on the next), the current implementation may fail to capture the entire incident, leading to incomplete records.
