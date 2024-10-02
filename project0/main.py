@@ -35,7 +35,7 @@ def parse_incident_data(text):
     for match in matches:
         incident_time, incident_number, location_raw, nature_raw, incident_ori = match
 
-        # Process location using NER and regex
+        # Process location using regex
         location = extract_location(location_raw)
         
         # Process nature and remove any incorrect prefixes
@@ -76,12 +76,12 @@ def extract_nature(nature_raw):
     
     return nature
 
-# Function to extract location using NER or manual parsing
+# Function to extract location using regex and manual parsing
 def extract_location(location_raw):
     # Clean location by stripping unnecessary characters like slashes
     location = location_raw.strip().replace("/", "").replace("RR", "Railroad")
 
-    # Apply NER if needed (currently manually cleaning)
+    # Add any additional cleaning logic here if necessary
     return location
 
 # Function to create (and overwrite) the SQLite database and table
@@ -118,8 +118,10 @@ def status(db):
     # Query to group the incidents by their nature and count the occurrences
     c.execute('SELECT nature, COUNT(*) FROM incidents GROUP BY nature ORDER BY nature ASC')
     rows = c.fetchall()  # Fetch all rows from the result
+    
+    # Print nature and count in the expected format
     for row in rows:
-        print(f'{row[0]}|{row[1]}')  # Print nature and count
+        print(f'{row[0]}|{row[1]}')
 
 # Main function to orchestrate the process
 def main(url):
