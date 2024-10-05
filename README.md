@@ -79,11 +79,6 @@ pdf_data = fetchincidents("https://www.normanok.gov/sites/default/files/document
 incidents = extractincidents(pdf_data)
 
 ```
-2}/\d{1,2}/\d{4} \d{1,2}:\d{2}) – a standard date/time format.
-- Incident Number: (\d{4}-\d{8}) – an incident number in the format of 4 digits followed by 8 digits.
-- Location: ((?:[A-Z0-9 /]+...)) – a location that may include street names and ends with suffixes like DR, AVE, ST, etc., or lat/long coordinates.
-- Nature: (.+?) – captures the nature of the incident, which can be multiple words.
-- ORI: (OK\d{6}|EMSSTAT|14005|14009) – captures the ORI code.
 
  # createdb()
 - **Parameters**: 
