@@ -62,23 +62,27 @@ Watch the demo [here](https://drive.google.com/file/d/1Iw-HH8e-6EXdSqBZD91zhyuqD
 ```python
 pdf_data = fetchincidents("https://www.normanok.gov/sites/default/files/documents/2024-09/2024-09-01_daily_incident_summary.pdf")
 ```
-# extractincidents(pdf_data)
-- **Parameters**: 
-  - `pdf_data`: A byte stream representing the downloaded PDF content.
-- **Process**: 
-  - This function processes the PDF data:
-    - Reads the PDF using `PdfReader`.
-    - Extracts text from each page.
-    - Parses the text using `parse_incident_data()` to extract relevant incident fields (date/time, incident number, location, nature, and ORI).
-  - Returns a list of incidents.
-- **Returns**: 
-  - A list of tuples, where each tuple represents an incident with its fields: `(incident_time, incident_number, location, nature, incident_ori)`.
-    
-**Example**:  
+### extractincidents(pdf_data)
+
+**Parameters:**
+- `pdf_data`: A byte stream representing the downloaded PDF content.
+
+**Process:**
+1. Writes the PDF data to a temporary file.
+2. Reads the PDF using `PyPDF2.PdfFileReader`.
+3. Extracts text from each page of the PDF.
+4. Replaces specific unwanted text strings (e.g., headers and footers) and adjusts formatting using regular expressions to identify incident entries.
+5. Parses each entry into a list containing the incident fields: `date/time`, `incident number`, `location`, `nature`, and `ORI`.
+6. Filters out any entries that don't contain the expected number of fields.
+
+**Returns:**
+- A list of lists (each representing an incident) with five fields: `(date/time, incident number, location, nature, ORI)`.
+
+**Example:**
+
 ```python
 incidents = extractincidents(pdf_data)
 
-```
 
  # createdb()
 - **Parameters**: 
