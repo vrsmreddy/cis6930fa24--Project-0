@@ -82,7 +82,7 @@ pdf_data = fetchincidents("https://www.normanok.gov/sites/default/files/document
 
 ```python
 incidents = extractincidents(pdf_data)
-
+```
 
  # createdb()
 - **Parameters**: 
